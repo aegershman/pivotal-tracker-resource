@@ -1,0 +1,17 @@
+git:
+  uri: ~
+  branch: ~
+  private_key: ~
+
+semver:
+  branch: ~
+  file: ~
+
+docker:
+  repository: ~
+  username: ~
+  password: ~
+
+tracker:
+  project_id: ~
+  token: ~

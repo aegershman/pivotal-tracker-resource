@@ -1,0 +1,100 @@
+resource_types:
+- name: pivotal-tracker-resource
+  type: docker-image
+  source:
+    repository: aegershman/pivotal-tracker-resource
+    tag: latest
+    username: ((docker.username))
+    password: ((docker.password))
+
+resources:
+- name: source
+  type: git
+  source:
+    uri: ((git.uri))
+    branch: ((git.branch))
+    private_key: ((git.private_key))
+
+# - name: version
+#   type: semver
+#   source:
+#     driver: git
+#     uri: ((git.uri))
+#     branch: ((semver.branch))
+#     private_key: ((git.private_key))
+#     file: ((semver.file))
+
+- name: docker
+  type: docker-image
+  source:
+    repository: ((docker.repository))
+    username: ((docker.username))
+    password: ((docker.password))
+
+- name: tracker
+  type: pivotal-tracker-resource
+  source:
+    project_id: ((tracker.project_id))
+    token: ((tracker.token))
+
+jobs:
+- name: build-resource
+  plan:
+  - get: source
+    trigger: true
+  - put: docker
+    params:
+      build: source
+
+- name: create-or-update
+  plan:
+  - put: tracker
+    params:
+      name: This story is a test. If you can read this, it's Aaron Gershman's fault
+      description: If this works you're looking at a story updated through concourse
+
+- name: accept
+  plan:
+  - put: tracker
+    params:
+      name: This story is a test. If you can read this, it's Aaron Gershman's fault
+      current_state: accepted
+
+- name: start
+  plan:
+  - put: tracker
+    params:
+      name: This story is a test. If you can read this, it's Aaron Gershman's fault
+      current_state: started
+
+- name: add-story-owners
+  plan:
+  - put: tracker
+    params:
+      name: This story is a test. If you can read this, it's Aaron Gershman's fault
+      owner_ids:
+      - 3016456
+
+- name: create-or-update-story-using-dynamically-generated-name
+  plan:
+  - task: generate-file-content
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source: {repository: czero/cflinuxfs2}
+      outputs:
+      - name: generate-file-content
+      run:
+        path: bash
+        args: [-c, echo "Aaron Gershman's" > generate-file-content/output ]
+  - put: tracker
+    params:
+      name_file: generate-file-content/output
+      name: This story is a test. If you can read this, it's $NAME_FILE fault
+
+- name: what-happens-if-it-finds-multiple-matching-stories
+  plan:
+  - put: tracker
+    params:
+      name: This story is a test.

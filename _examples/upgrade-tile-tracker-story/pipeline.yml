@@ -1,0 +1,53 @@
+resource_types:
+- name: pivotal-tracker-resource
+  type: docker-image
+  source:
+    repository: aegershman/pivotal-tracker-resource
+    tag: latest
+    username: ((docker.username))
+    password: ((docker.password))
+
+- name: pivnet
+  type: docker-image
+  source:
+    repository: pivotalcf/pivnet-resource
+    tag: latest-final
+
+resources:
+- name: tracker
+  type: pivotal-tracker-resource
+  source:
+    project_id: ((tracker.project_id))
+    token: ((tracker.token))
+
+- name: p-mysql
+  type: pivnet
+  source:
+    product_slug: p-mysql
+    product_version_regex: 1\.10\..*
+    api_token: ((pivnet_token))
+    region: us-west-2
+    sort_by: semver
+
+jobs:
+- name: story-for-p-mysql-available
+  plan:
+  - get: p-mysql
+    trigger: true
+    params:
+      globs: []
+  - task: generate-file-content
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source: {repository: czero/cflinuxfs2}
+      outputs:
+      - name: generate-file-content
+      run:
+        path: bash
+        args: [-c, echo "Aaron Gershman's" > generate-file-content/output ]
+  - put: tracker
+    params:
+      name: Upgrade to p-mysql v$FILE_NAME in sandbox
+      name_file:
