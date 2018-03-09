@@ -1,3 +1,21 @@
+shared:
+  generate-file-content-params: &gfcp
+    platform: linux
+    image_resource:
+      type: docker-image
+      source: {repository: czero/cflinuxfs2}
+    inputs:
+    - name: pivnet-product
+    outputs:
+    - name: generate-file-content
+    run:
+      path: bash
+      args:
+      - -c
+      - |
+        desired_version=$(jq --raw-output '.Release.Version' < ./pivnet-product/metadata.json)
+        echo "$desired_version" > generate-file-content/output.txt
+
 resource_types:
 - name: pivotal-tracker-resource
   type: docker-image
@@ -30,24 +48,51 @@ resources:
     sort_by: semver
 
 jobs:
-- name: story-for-p-mysql-available
+- name: create-story-for-new-version-of-p-mysql
   plan:
-  - get: p-mysql
+  - get: pivnet-product
+    resource: p-mysql
     trigger: true
-    params:
-      globs: []
+    params: {globs: []}
   - task: generate-file-content
-    config:
-      platform: linux
-      image_resource:
-        type: docker-image
-        source: {repository: czero/cflinuxfs2}
-      outputs:
-      - name: generate-file-content
-      run:
-        path: bash
-        args: [-c, echo "Aaron Gershman's" > generate-file-content/output ]
+    config: {<<: *gfcp}
   - put: tracker
     params:
-      name: Upgrade to p-mysql v$FILE_NAME in sandbox
-      name_file:
+      name: DEMO. Upgrade to $NAME_FILE in sandbox
+      name_file: generate-file-content/output.txt
+      owner_ids: [3016456]
+      story_type: chore
+
+- name: start-story
+  plan:
+  - get: pivnet-product
+    passed: [create-story-for-new-version-of-p-mysql]
+    resource: p-mysql
+    trigger: true
+    params: {globs: []}
+  - task: generate-file-content
+    config: {<<: *gfcp}
+  - put: tracker
+    params:
+      name: DEMO. Upgrade to $NAME_FILE in sandbox
+      name_file: generate-file-content/output.txt
+      owner_ids: [3016456]
+      story_type: chore
+      current_state: started
+
+- name: accept-story
+  plan:
+  - get: pivnet-product
+    passed: [start-story]
+    resource: p-mysql
+    trigger: true
+    params: {globs: []}
+  - task: generate-file-content
+    config: {<<: *gfcp}
+  - put: tracker
+    params:
+      name: $NAME_FILE in sandbox
+      name_file: generate-file-content/output.txt
+      owner_ids: [3016456]
+      story_type: chore
+      current_state: accepted

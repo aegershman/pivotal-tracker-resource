@@ -11,7 +11,3 @@ docker:
   repository: ~
   username: ~
   password: ~
-
-tracker:
-  project_id: ~
-  token: ~

@@ -3,6 +3,7 @@ package models
 import (
 	"io/ioutil"
 	"path"
+	"regexp"
 	"strings"
 
 	"github.com/salsita/go-pivotaltracker/v5/pivotal"
@@ -27,19 +28,24 @@ type OutParams struct {
 	pivotal.StoryRequest
 }
 
-// ReplaceName -
-func (o *OutParams) ReplaceName(filepath string) error {
-	if o.NameFile != "" {
-
-		dir := path.Join(filepath, o.NameFile)
-		dat, err := ioutil.ReadFile(dir)
-
-		if err != nil {
-			return err
-		}
-
-		o.Name = strings.Replace(o.Name, "$NAME_FILE", string(dat), -1)
+// MergeName -
+func (o *OutParams) MergeName(filepath string) error {
+	if o.NameFile == "" {
+		return nil
 	}
+
+	dir := path.Join(filepath, o.NameFile)
+	data, err := ioutil.ReadFile(dir)
+	if err != nil {
+		return err
+	}
+
+	replaced := strings.Replace(o.Name, "$NAME_FILE", string(data), -1)
+	trimmed := strings.TrimSpace(replaced)
+	re := regexp.MustCompile(`\r?\n`)
+	formatted := re.ReplaceAllString(trimmed, "")
+
+	o.Name = formatted
 
 	return nil
 }

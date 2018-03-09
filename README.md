@@ -2,6 +2,62 @@
 
 An output-only resource for interacting with Pivotal Tracker stories. Heavily inspired by the [jira-resource](https://github.com/danrspencer/jira-resource).
 
+## quick example
+
+See more in `_examples/`
+
+```yaml
+jobs:
+# creates pivotal tracker stories to upgrade all your environments
+#  when new versions of a tile product are available
+- name: create-story-new-version-p-mysql
+  plan:
+  - get: pivnet-product
+    resource: p-mysql
+    trigger: true
+    params:
+      globs: []
+  - task: generate-file-content
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source: {repository: czero/cflinuxfs2}
+      inputs:
+      - name: pivnet-product
+      outputs:
+      - name: generate-file-content
+      run:
+        path: bash
+        args:
+        - -c
+        - |
+          desired_version=$(jq --raw-output '.Release.Version' < ./pivnet-product/metadata.json)
+          echo "$desired_version" > generate-file-content/output.txt
+  - aggregate:
+    - put: tracker
+      params:
+        name: Upgrade to p-mysql v$NAME_FILE in Sandbox
+        name_file: generate-file-content/output.txt
+        owner_ids:
+        - 3016456
+        story_type: chore
+    - put: tracker
+      params:
+        name: Upgrade to p-mysql v$NAME_FILE in Dev
+        name_file: generate-file-content/output.txt
+        owner_ids:
+        - 3016456
+        story_type: chore
+    - put: tracker
+      params:
+        name: Upgrade to p-mysql v$NAME_FILE in Prod
+        name_file: generate-file-content/output.txt
+        owner_ids:
+        - 3016456
+        story_type: chore
+```
+
 ## source configuration
 
 ```yaml

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"regexp"
 
 	"github.com/aegershman/pivotal-tracker-resource/models"
 
@@ -25,7 +26,7 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	err := outRequest.Params.ReplaceName(sourceDir)
+	err := outRequest.Params.MergeName(sourceDir)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -37,14 +38,10 @@ func main() {
 		}
 	}
 
-	// Filter works like this
-	// name:"some story name goes here"
-	filter := fmt.Sprintf("name:\"%s\"", outRequest.Params.Name)
+	filter := filterBuilder("name", outRequest.Params.Name)
+
 	log.Println("Searching using filter: ", filter)
-	stories, err := client.Stories.List(
-		outRequest.Source.ProjectID,
-		filter,
-	)
+	stories, err := client.Stories.List(outRequest.Source.ProjectID, filter)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -86,4 +83,14 @@ func main() {
 	}
 
 	fmt.Print("{\"version\":{\"ref\":\"none\"}}")
+}
+
+func filterBuilder(filterBy, param string) string {
+	// filters seem to HATE punctuation. It appears
+	// that if we simply replace all punctuation with spaces then
+	// the matching patterns work pretty well
+	re := regexp.MustCompile("[^a-zA-Z0-9]+")
+	processedString := re.ReplaceAllString(param, " ")
+
+	return fmt.Sprintf("%s:\"%s\"", filterBy, processedString)
 }
