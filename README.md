@@ -42,6 +42,10 @@ jobs:
         owner_ids:
         - 3016456
         story_type: chore
+        labels:
+        - name: sandbox
+        - name: p-mysql
+        - name: tile-upgrade
     - put: tracker
       params:
         name: Upgrade to p-mysql v$NAME_FILE in Dev
@@ -49,6 +53,10 @@ jobs:
         owner_ids:
         - 3016456
         story_type: chore
+        labels:
+        - name: dev
+        - name: p-mysql
+        - name: tile-upgrade
     - put: tracker
       params:
         name: Upgrade to p-mysql v$NAME_FILE in Prod
@@ -56,6 +64,10 @@ jobs:
         owner_ids:
         - 3016456
         story_type: chore
+        labels:
+        - name: prod
+        - name: p-mysql
+        - name: tile-upgrade
 ```
 
 ## source configuration
@@ -100,6 +112,18 @@ resource_types:
     name_file: pivnet-product/version
 ```
 
+WARNING: For some reason, this has a very difficult time matching story names when letters, numbers, or punctuation are merged together. This might be an issue with my code, or maybe I'm misunderstanding something about pivotal tracker's search API. Regardless, until this is resolved, it's recommended you separate your version numbers from any other text. For example:
+
+```yaml
+- put: tracker
+  params:
+    name: This fails to find a match v1.1.10
+
+- put: tracker
+  params:
+    name: But this works fine 1.1.10
+```
+
 * `description`: *optional*
 
 ```yaml
@@ -136,6 +160,17 @@ resource_types:
   params:
     name: blah
     current_state: started
+```
+
+* `labels`: *optional*
+
+```yaml
+- put: tracker
+  params:
+    name: blah
+    labels:
+    - name: blah-automation
+    - name: blah-dev
 ```
 
 ## contributing

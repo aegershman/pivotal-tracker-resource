@@ -58,10 +58,14 @@ jobs:
     config: {<<: *gfcp}
   - put: tracker
     params:
-      name: DEMO. Upgrade to $NAME_FILE in sandbox
+      name: DEMO. Upgrade to p-mysql $NAME_FILE in Sandbox
       name_file: generate-file-content/output.txt
       owner_ids: [3016456]
       story_type: chore
+      labels:
+      - name: sandbox
+      - name: p-mysql
+      - name: tile-upgrade
 
 - name: start-story
   plan:
@@ -74,10 +78,8 @@ jobs:
     config: {<<: *gfcp}
   - put: tracker
     params:
-      name: DEMO. Upgrade to $NAME_FILE in sandbox
+      name: DEMO. Upgrade to p-mysql $NAME_FILE in Sandbox
       name_file: generate-file-content/output.txt
-      owner_ids: [3016456]
-      story_type: chore
       current_state: started
 
 - name: accept-story
@@ -91,8 +93,6 @@ jobs:
     config: {<<: *gfcp}
   - put: tracker
     params:
-      name: $NAME_FILE in sandbox
+      name: DEMO. Upgrade to p-mysql $NAME_FILE in Sandbox
       name_file: generate-file-content/output.txt
-      owner_ids: [3016456]
-      story_type: chore
       current_state: accepted
