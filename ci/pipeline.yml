@@ -58,6 +58,8 @@ jobs:
     params:
       bump: final
   - put: version
+    params:
+      file: version/((semver.file))
   - put: docker
     params:
       build: source
