@@ -37,7 +37,7 @@ jobs:
   - aggregate:
     - put: tracker
       params:
-        name: Upgrade to p-mysql v$NAME_FILE in Sandbox
+        name: Upgrade to p-mysql $NAME_FILE in Sandbox
         name_file: generate-file-content/output.txt
         owner_ids:
         - 3016456
@@ -48,7 +48,7 @@ jobs:
         - name: tile-upgrade
     - put: tracker
       params:
-        name: Upgrade to p-mysql v$NAME_FILE in Dev
+        name: Upgrade to p-mysql $NAME_FILE in Dev
         name_file: generate-file-content/output.txt
         owner_ids:
         - 3016456
@@ -59,7 +59,7 @@ jobs:
         - name: tile-upgrade
     - put: tracker
       params:
-        name: Upgrade to p-mysql v$NAME_FILE in Prod
+        name: Upgrade to p-mysql $NAME_FILE in Prod
         name_file: generate-file-content/output.txt
         owner_ids:
         - 3016456
@@ -89,7 +89,7 @@ resource_types:
   type: docker-image
   source:
     repository: aegershman/pivotal-tracker-resource
-    tag: latest
+    tag: 0.0.1 # or 'latest'
 ```
 
 ## behavior
@@ -108,7 +108,7 @@ resource_types:
 
 - put: tracker
   params:
-    name: Upgrade to PAS v$NAME_FILE in Sandbox
+    name: Upgrade to PAS $NAME_FILE in Sandbox
     name_file: pivnet-product/version
 ```
 
