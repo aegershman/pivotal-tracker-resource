@@ -1,13 +1,11 @@
-resource_types:
-- name: pivotal-tracker-resource
-  type: docker-image
-  source:
-    repository: aegershman/pivotal-tracker-resource
-    tag: latest
-    username: ((docker.username))
-    password: ((docker.password))
-
 resources:
+- name: gh-release
+  type: github-release
+  source:
+    owner: ((git.owner))
+    repository: ((git.repository))
+    access_token: ((git.access_token))
+
 - name: source
   type: git
   source:
@@ -15,14 +13,14 @@ resources:
     branch: ((git.branch))
     private_key: ((git.private_key))
 
-# - name: version
-#   type: semver
-#   source:
-#     driver: git
-#     uri: ((git.uri))
-#     branch: ((semver.branch))
-#     private_key: ((git.private_key))
-#     file: ((semver.file))
+- name: version
+  type: semver
+  source:
+    driver: git
+    uri: ((git.uri))
+    branch: ((semver.branch))
+    private_key: ((git.private_key))
+    file: ((semver.file))
 
 - name: docker
   type: docker-image
@@ -32,10 +30,71 @@ resources:
     password: ((docker.password))
 
 jobs:
-- name: build-resource
+- name: build
+  serial: true
   plan:
   - get: source
     trigger: true
+  - put: version
+    params:
+      pre: ((semver.pre))
+  - get: version-for-docker-dev-deployment
+    resource: version
+    params:
+      bump: final
   - put: docker
     params:
       build: source
+      tag: version-for-docker-dev-deployment/((semver.file))
+      tag_prefix: development-
+
+- name: release
+  serial: true
+  plan:
+  - get: source
+    passed: [build]
+  - get: version
+    passed: [build]
+    params:
+      bump: final
+  - put: version
+    params:
+      file: version/((semver.file))
+  - put: docker
+    params:
+      build: source
+      tag: version/((semver.file))
+      tag_as_latest: true
+  - put: gh-release
+    params:
+      name: version/((semver.file))
+      tag: version/((semver.file))
+
+- name: patch
+  serial: true
+  plan:
+  - get: version
+    passed: [release]
+    trigger: true
+    params:
+      bump: patch
+      pre: ((semver.pre))
+  - put: version
+    params:
+      file: version/((semver.file))
+
+- name: major
+  serial: true
+  plan:
+  - put: version
+    params:
+      bump: major
+      pre: ((semver.pre))
+
+- name: minor
+  serial: true
+  plan:
+  - put: version
+    params:
+      bump: minor
+      pre: ((semver.pre))

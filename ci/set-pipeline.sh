@@ -14,6 +14,7 @@ destroy)
 	fly -t "$TARGET" \
 		set-pipeline -p "$PIPELINE" \
 		-c pipeline.yml \
+		-l ../scripts/credentials.yml \
 		"$@"
 	;;
 esac
