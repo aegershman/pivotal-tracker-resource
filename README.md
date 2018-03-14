@@ -1,6 +1,6 @@
 # pivotal-tracker-resource
 
-An output-only resource for interacting with Pivotal Tracker stories. Heavily inspired by the [jira-resource](https://github.com/danrspencer/jira-resource).
+An output-only resource for interacting with Pivotal Tracker stories. Inspired by the [jira-resource](https://github.com/danrspencer/jira-resource).
 
 ## quick example
 
